@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas>
+    <Texture>images/title-atlas</Texture>
+    <Regions>
+        <Region name="title_board" x="0" y="0" width="431" height="342" />
+        <Region name="button-1" x="431" y="0" width="356" height="127" />
+        <Region name="button-2" x="431" y="127" width="356" height="127" />
+        <Region name="button-3" x="431" y="254" width="356" height="127" />
+    </Regions>
+    <Animations>
+        <Animation name="button-animation" delay="200">
+            <Frame region="button-2" />
+            <Frame region="button-1" />
+            <Frame region="button-2" />
+            <Frame region="button-3" />
+        </Animation>
+    </Animations>
+</TextureAtlas>
