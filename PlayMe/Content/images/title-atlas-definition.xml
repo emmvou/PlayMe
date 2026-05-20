@@ -6,6 +6,11 @@
         <Region name="button-1" x="431" y="0" width="356" height="127" />
         <Region name="button-2" x="431" y="127" width="356" height="127" />
         <Region name="button-3" x="431" y="254" width="356" height="127" />
+        <Region name="character" x="787" y="0" width="113" height="209" />
+        <Region name="bullet-1" x="787" y="209" width="30" height="30" />
+        <Region name="bullet-2" x="817" y="209" width="30" height="30" />
+        <Region name="bullet-3" x="847" y="209" width="30" height="30" />
+        <Region name="bullet-4" x="787" y="239" width="30" height="30" />
     </Regions>
     <Animations>
         <Animation name="button-animation" delay="200">
@@ -13,6 +18,12 @@
             <Frame region="button-1" />
             <Frame region="button-2" />
             <Frame region="button-3" />
+        </Animation>
+        <Animation name="bullet-animation" delay="100">
+            <Frame region="bullet-1" />
+            <Frame region="bullet-2" />
+            <Frame region="bullet-3" />
+            <Frame region="bullet-4" />
         </Animation>
     </Animations>
 </TextureAtlas>
