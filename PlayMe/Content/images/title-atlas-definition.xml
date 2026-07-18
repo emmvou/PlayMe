@@ -6,7 +6,7 @@
         <Region name="button-1" x="431" y="0" width="356" height="127" />
         <Region name="button-2" x="431" y="127" width="356" height="127" />
         <Region name="button-3" x="431" y="254" width="356" height="127" />
-        <Region name="character" x="787" y="0" width="113" height="209" />
+        <Region name="character" x="787" y="0" width="113" height="113" />
         <Region name="bullet-1" x="787" y="209" width="30" height="30" />
         <Region name="bullet-2" x="817" y="209" width="30" height="30" />
         <Region name="bullet-3" x="847" y="209" width="30" height="30" />

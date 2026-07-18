@@ -25,6 +25,9 @@
 /processorParam:TextureFormat=Color
 /build:images/playmeplayer.png
 
+#begin images/tilemap-definition.xml
+/copy:images/tilemap-definition.xml
+
 #begin images/title-atlas-definition.xml
 /copy:images/title-atlas-definition.xml
 

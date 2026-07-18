@@ -32,6 +32,12 @@ public class Game1 : Core
     private Keys _left_key = Keys.Q;
     private Keys _right_key = Keys.D;
 
+    // Defines the tilemap to draw.
+    private Tilemap _tilemap;
+
+    // Defines the bounds of the room that the slime and bat are contained within.
+    private Rectangle _roomBounds;
+
     public Game1() : base("Play me", 1280, 720, false)
     {
 
@@ -43,9 +49,22 @@ public class Game1 : Core
 
         base.Initialize();
 
-        // Set the initial position of the bullet to be 10px
-        // to the right of the slime.
-        _bulletPosition = new Vector2(_character.Width + 10, 0);
+        Rectangle screenBounds = GraphicsDevice.PresentationParameters.Bounds;
+
+       _roomBounds = new Rectangle(
+            (int)_tilemap.TileWidth,
+            (int)_tilemap.TileHeight,
+            screenBounds.Width - (int)_tilemap.TileWidth * 2,
+            screenBounds.Height - (int)_tilemap.TileHeight * 2
+        );
+
+        // Initial character position will be the center tile of the tile map.
+        int centerRow = _tilemap.Rows / 2;
+        int centerColumn = _tilemap.Columns / 2;
+        _characterPosition = new Vector2(centerColumn * _tilemap.TileWidth, centerRow * _tilemap.TileHeight);
+
+        // Initial bullet position will be in the top left corner of the room
+        _bulletPosition = new Vector2(_roomBounds.Left, _roomBounds.Top);
 
         // Assign the initial random velocity to the bat.
         AssignRandomBulletVelocity();
@@ -66,6 +85,10 @@ public class Game1 : Core
         _character = atlas.CreateSprite("character");
 
         _bullet = atlas.CreateAnimatedSprite("bullet-animation");
+
+        // Create the tilemap from the XML configuration file.
+        _tilemap = Tilemap.FromFile(Content, "images/tilemap-definition.xml");
+        _tilemap.Scale = new Vector2(4.0f, 4.0f);
     }
 
     protected override void Update(GameTime gameTime)
@@ -83,13 +106,13 @@ public class Game1 : Core
         // Check for gamepad input and handle it.
         CheckGamePadInput();
 
-        // Create a bounding rectangle for the screen.
-        Rectangle screenBounds = new Rectangle(
-            0,
-            0,
-            GraphicsDevice.PresentationParameters.BackBufferWidth,
-            GraphicsDevice.PresentationParameters.BackBufferHeight
-        );
+        // // Create a bounding rectangle for the screen.
+        // Rectangle screenBounds = new Rectangle(
+        //     0,
+        //     0,
+        //     GraphicsDevice.PresentationParameters.BackBufferWidth,
+        //     GraphicsDevice.PresentationParameters.BackBufferHeight
+        // );
 
         // Creating a bounding circle for the character
         Circle characterBounds = new Circle(
@@ -101,22 +124,24 @@ public class Game1 : Core
         // Use distance based checks to determine if the character is within the
         // bounds of the game screen, and if it is outside that screen edge,
         // move it back inside.
-        if (characterBounds.Left < screenBounds.Left)
+        // collision only works properly if the character is indeed as tall as it is wide
+        // since the bounds are based on width and repositioning on original object
+        if (characterBounds.Left < _roomBounds.Left)
         {
-            _characterPosition.X = screenBounds.Left;
+            _characterPosition.X = _roomBounds.Left;
         }
-        else if (characterBounds.Right > screenBounds.Right)
+        else if (characterBounds.Right > _roomBounds.Right)
         {
-            _characterPosition.X = screenBounds.Right - _character.Width;
+            _characterPosition.X = _roomBounds.Right - _character.Width;
         }
 
-        if (characterBounds.Top < screenBounds.Top)
+        if (characterBounds.Top < _roomBounds.Top)
         {
-            _characterPosition.Y = screenBounds.Top;
+            _characterPosition.Y = _roomBounds.Top;
         }
-        else if (characterBounds.Bottom > screenBounds.Bottom)
+        else if (characterBounds.Bottom > _roomBounds.Bottom)
         {
-            _characterPosition.Y = screenBounds.Bottom - _character.Height;
+            _characterPosition.Y = _roomBounds.Bottom - _character.Height;
         }
 
         // Calculate the new position of the bullet based on the velocity.
@@ -134,26 +159,26 @@ public class Game1 : Core
         // Use distance based checks to determine if the bullet is within the
         // bounds of the game screen, and if it is outside that screen edge,
         // reflect it about the screen edge normal.
-        if (bulletBounds.Left < screenBounds.Left)
+        if (bulletBounds.Left < _roomBounds.Left)
         {
             normal.X = Vector2.UnitX.X;
-            newBulletPosition.X = screenBounds.Left;
+            newBulletPosition.X = _roomBounds.Left;
         }
-        else if (bulletBounds.Right > screenBounds.Right)
+        else if (bulletBounds.Right > _roomBounds.Right)
         {
             normal.X = -Vector2.UnitX.X;
-            newBulletPosition.X = screenBounds.Right - _bullet.Width;
+            newBulletPosition.X = _roomBounds.Right - _bullet.Width;
         }
 
-        if (bulletBounds.Top < screenBounds.Top)
+        if (bulletBounds.Top < _roomBounds.Top)
         {
             normal.Y = Vector2.UnitY.Y;
-            newBulletPosition.Y = screenBounds.Top;
+            newBulletPosition.Y = _roomBounds.Top;
         }
-        else if (bulletBounds.Bottom > screenBounds.Bottom)
+        else if (bulletBounds.Bottom > _roomBounds.Bottom)
         {
             normal.Y = -Vector2.UnitY.Y;
-            newBulletPosition.Y = screenBounds.Bottom - _bullet.Height;
+            newBulletPosition.Y = _roomBounds.Bottom - _bullet.Height;
         }
 
         // If the normal is anything but Vector2.Zero, this means the bullet had
@@ -169,18 +194,14 @@ public class Game1 : Core
 
         if (characterBounds.Intersects(bulletBounds))
         {
-            // Divide the width and height of the screen into equal columns and
-            // rows based on the width and height of the bullet.
-            int totalColumns = GraphicsDevice.PresentationParameters.BackBufferWidth / (int)_bullet.Width;
-            int totalRows = GraphicsDevice.PresentationParameters.BackBufferHeight / (int)_bullet.Height;
-
             // Choose a random row and column based on the total number of each
-            int column = Random.Shared.Next(0, totalColumns);
-            int row = Random.Shared.Next(0, totalRows);
+            int column = Random.Shared.Next(1, _tilemap.Columns - 1);
+            int row = Random.Shared.Next(1, _tilemap.Rows - 1);
 
             // Change the bullet position by setting the x and y values equal to
             // the column and row multiplied by the width and height.
-            _bulletPosition = new Vector2(column * _bullet.Width, row * _bullet.Height);
+            // 4 is an approximation that feels nice, a screen-related coefficient should be used instead
+            _bulletPosition = new Vector2(column * _bullet.Width * 4, row * _bullet.Height * 4);
 
             // Assign a new random velocity to the bullet
             AssignRandomBulletVelocity();
@@ -300,6 +321,9 @@ public class Game1 : Core
 
          // Begin the sprite batch to prepare for rendering.
         SpriteBatch.Begin(samplerState: SamplerState.PointClamp);
+
+        // Draw the tilemap.
+        _tilemap.Draw(SpriteBatch);
 
         // Draw the title sprite
         _title_board.Draw(SpriteBatch, Vector2.Zero);
