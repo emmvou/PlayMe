@@ -2,6 +2,8 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Audio;
+using Microsoft.Xna.Framework.Media;
 using MonoGameLibrary;
 using MonoGameLibrary.Graphics;
 using MonoGameLibrary.Input;
@@ -38,6 +40,15 @@ public class Game1 : Core
     // Defines the bounds of the room that the slime and bat are contained within.
     private Rectangle _roomBounds;
 
+    // The sound effect to play when the bat bounces off the edge of the screen.
+    private SoundEffect _bounceSoundEffect;
+
+    // The sound effect to play when the slime eats a bat.
+    private SoundEffect _collectSoundEffect;
+
+    // The background theme song
+    private Song _themeSong;
+
     public Game1() : base("Play me", 1280, 720, false)
     {
 
@@ -68,6 +79,9 @@ public class Game1 : Core
 
         // Assign the initial random velocity to the bat.
         AssignRandomBulletVelocity();
+
+        // Start playing the background music.
+        Audio.PlaySong(_themeSong);
     }
 
     protected override void LoadContent()
@@ -89,6 +103,15 @@ public class Game1 : Core
         // Create the tilemap from the XML configuration file.
         _tilemap = Tilemap.FromFile(Content, "images/tilemap-definition.xml");
         _tilemap.Scale = new Vector2(4.0f, 4.0f);
+
+        // Load the bounce sound effect
+        _bounceSoundEffect = Content.Load<SoundEffect>("audio/bounce");
+
+        // Load the collect sound effect
+        _collectSoundEffect = Content.Load<SoundEffect>("audio/collect");
+
+        // Load the background theme music.
+        _themeSong = Content.Load<Song>("audio/theme");
     }
 
     protected override void Update(GameTime gameTime)
@@ -188,6 +211,9 @@ public class Game1 : Core
         {
             normal.Normalize();
             _bulletVelocity = Vector2.Reflect(_bulletVelocity, normal);
+
+            // Play the bounce sound effect
+            Audio.PlaySoundEffect(_bounceSoundEffect);
         }
 
         _bulletPosition = newBulletPosition;
@@ -205,6 +231,9 @@ public class Game1 : Core
 
             // Assign a new random velocity to the bullet
             AssignRandomBulletVelocity();
+
+            // Play the collect sound effect
+            Audio.PlaySoundEffect(_collectSoundEffect);
         }
 
         base.Update(gameTime);
@@ -258,6 +287,26 @@ public class Game1 : Core
         if (Input.Keyboard.IsKeyDown(_right_key) || Input.Keyboard.IsKeyDown(Keys.Right))
         {
             _characterPosition.X += speed;
+        }
+
+        // If the M key is pressed, toggle mute state for audio.
+        if (Input.Keyboard.WasKeyJustPressed(Keys.M))
+        {
+            Audio.ToggleMute();
+        }
+
+        // If the + button is pressed, increase the volume.
+        if (Input.Keyboard.WasKeyJustPressed(Keys.OemPlus)) // only works with US layout
+        {
+            Audio.SongVolume += 0.1f;
+            Audio.SoundEffectVolume += 0.1f;
+        }
+
+        // If the - button was pressed, decrease the volume.
+        if (Input.Keyboard.WasKeyJustPressed(Keys.OemMinus)) // only works with US layout
+        {
+            Audio.SongVolume -= 0.1f;
+            Audio.SoundEffectVolume -= 0.1f;
         }
     }
 
